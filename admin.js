@@ -1,0 +1,184 @@
+/* -------------------------------------------------------------
+ * WHEELOR Admin Dashboard Script
+ * Handles Product Uploads, Local Storage Sync, and Traffic Analytics
+ * ------------------------------------------------------------- */
+
+const LAZY_PANDA_BASE64 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700" viewBox="0 0 600 700"><rect width="600" height="700" fill="%23F4F0EA"/><path d="M150 70 Q300 95 450 70 L550 170 L470 250 L470 650 L130 650 L130 250 L50 170 Z" fill="%23FAF7F2" stroke="%23E2DDD3" stroke-width="4"/><path d="M250 70 Q300 110 350 70" fill="none" stroke="%23111118" stroke-width="4"/><rect x="275" y="105" width="50" height="24" fill="%23000" rx="3"/><text x="300" y="121" fill="%23FFF" font-family="sans-serif" font-weight="bold" font-size="8" text-anchor="middle">WHEELOR</text><text x="300" y="195" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="32" letter-spacing="1" text-anchor="middle">doing</text><text x="300" y="240" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="44" letter-spacing="1" text-anchor="middle">nothing</text><ellipse cx="300" cy="365" rx="115" ry="75" fill="%23E5E7EB"/><circle cx="240" cy="305" r="18" fill="%23111118"/><circle cx="360" cy="305" r="18" fill="%23111118"/><ellipse cx="300" cy="345" rx="70" ry="55" fill="%23FFFFFF" stroke="%23111118" stroke-width="4"/><ellipse cx="272" cy="340" rx="12" ry="16" fill="%23111118"/><ellipse cx="328" cy="340" rx="12" ry="16" fill="%23111118"/><polygon points="300,357 290,369 310,369" fill="%23111118"/><path d="M288 380 Q300 393 312 380" fill="none" stroke="%23111118" stroke-width="4"/><rect x="335" y="365" width="38" height="52" fill="%23D97706" rx="8" stroke="%23111118" stroke-width="2"/><rect x="343" y="355" width="22" height="12" fill="%23FFFFFF" rx="2"/><line x1="354" y1="335" x2="354" y2="355" stroke="%23111118" stroke-width="4"/><rect x="235" y="455" width="130" height="28" fill="%23F3E8FF" rx="6"/><text x="300" y="475" fill="%23111118" font-family="sans-serif" font-weight="800" font-size="16" text-anchor="middle">is a</text><text x="300" y="520" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="34" letter-spacing="1" text-anchor="middle">full-time job</text></svg>`;
+
+const DEFAULT_PRODUCTS = [
+  {
+    id: "drop-01",
+    name: "Lazy Panda Tee",
+    category: "oversized",
+    categoryLabel: "Oversized Fit",
+    price: 399,
+    originalPrice: 799,
+    discount: "50% OFF",
+    stockStatus: "Only 4 Left",
+    color: "Cream / Off-White",
+    fabric: "100% Cotton",
+    tagline: "Doing Nothing Is A Full-Time Job",
+    description: "Ultra-chill oversized graphic tee crafted from combed French Terry cotton.",
+    frontImg: LAZY_PANDA_BASE64,
+    backImg: LAZY_PANDA_BASE64,
+    currentView: "front",
+    selectedSize: "M",
+    badge: "BESTSELLER"
+  }
+];
+
+// Load Products from LocalStorage or Set Default
+function getStoredProducts() {
+  const stored = localStorage.getItem("WHEELOR_PRODUCTS");
+  if (stored) {
+    try {
+      let parsed = JSON.parse(stored);
+      let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/"));
+      
+      const unique = [];
+      const seen = new Set();
+      for (const p of cleaned) {
+        if (!seen.has(p.id) && !seen.has(p.name)) {
+          seen.add(p.id);
+          seen.add(p.name);
+          unique.push(p);
+        }
+      }
+
+      if (unique.length > 0) {
+        return unique;
+      } else {
+        return DEFAULT_PRODUCTS;
+      }
+    } catch(e) {
+      return DEFAULT_PRODUCTS;
+    }
+  } else {
+    localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(DEFAULT_PRODUCTS));
+    return DEFAULT_PRODUCTS;
+  }
+}
+
+function saveProducts(products) {
+  localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(products));
+}
+
+// Convert uploaded file to Base64 Data URI
+function convertImageFile(fileInput, targetInputId) {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById(targetInputId).value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Initialize Admin Dashboard
+document.addEventListener("DOMContentLoaded", () => {
+  renderAnalytics();
+  renderAdminProductsTable();
+});
+
+// Render Traffic & Analytics Stats
+function renderAnalytics() {
+  const views = parseInt(localStorage.getItem("WHEELOR_PAGE_VIEWS") || "142", 10);
+  const waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "38", 10);
+  const products = getStoredProducts();
+
+  document.getElementById("statPageViews").innerText = views.toLocaleString();
+  document.getElementById("statWaClicks").innerText = waClicks.toLocaleString();
+  document.getElementById("statProductsCount").innerText = products.length;
+
+  const convRate = views > 0 ? ((waClicks / views) * 100).toFixed(1) : "0";
+  document.getElementById("statConversion").innerText = `${convRate}%`;
+}
+
+function resetAnalyticsData() {
+  if (confirm("Reset website page visits and enquiry click statistics?")) {
+    localStorage.setItem("WHEELOR_PAGE_VIEWS", "1");
+    localStorage.setItem("WHEELOR_WA_CLICKS", "0");
+    renderAnalytics();
+  }
+}
+
+// Render Products Table
+function renderAdminProductsTable() {
+  const tbody = document.getElementById("adminProductsTableBody");
+  if (!tbody) return;
+
+  const products = getStoredProducts();
+  
+  tbody.innerHTML = products.map((prod, index) => `
+    <tr>
+      <td><img src="${prod.frontImg}" alt="Front" class="admin-thumb" onerror="this.src='./images/logo.png'" /></td>
+      <td><strong>${prod.name}</strong><br/><small style="color:var(--text-secondary);">${prod.color || 'Cream'}</small></td>
+      <td><span class="badge-stock">${prod.category.toUpperCase()}</span></td>
+      <td><strong style="color:var(--accent-orange);">₹${prod.price}</strong> <del style="font-size:0.75rem; color:var(--text-muted);">₹${prod.originalPrice}</del></td>
+      <td>
+        <button class="btn-admin-danger" onclick="deleteProduct('${prod.id}')">🗑️ DELETE</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// Handle Form Submission for New Product Upload
+function handleProductUpload(event) {
+  event.preventDefault();
+
+  const title = document.getElementById("prodTitle").value.trim();
+  const category = document.getElementById("prodCategory").value;
+  const price = parseInt(document.getElementById("prodPrice").value, 10) || 399;
+  const originalPrice = parseInt(document.getElementById("prodOriginalPrice").value, 10) || 799;
+  const color = document.getElementById("prodColor").value.trim();
+  const stock = document.getElementById("prodStock").value.trim();
+  const frontImg = document.getElementById("prodFrontData").value.trim() || LAZY_PANDA_BASE64;
+  const tagline = document.getElementById("prodTagline").value.trim() || "Wear Beyond Ordinary";
+  const description = document.getElementById("prodDesc").value.trim() || "Exclusive oversized graphic t-shirt.";
+
+  const discountCalc = Math.round(((originalPrice - price) / originalPrice) * 100);
+
+  const newProduct = {
+    id: "drop-" + Date.now(),
+    name: title,
+    category: category,
+    categoryLabel: category === "oversized" ? "Oversized Fit" : (category === "anime" ? "Anime & Gaming" : "Streetwear Graphic"),
+    price: price,
+    originalPrice: originalPrice,
+    discount: `${discountCalc}% OFF`,
+    stockStatus: stock,
+    color: color,
+    fabric: "100% Cotton",
+    tagline: tagline,
+    description: description,
+    frontImg: frontImg,
+    backImg: frontImg,
+    currentView: "front",
+    selectedSize: "M",
+    badge: "NEW DROP"
+  };
+
+  const products = getStoredProducts();
+  products.unshift(newProduct);
+  saveProducts(products);
+
+  document.getElementById("adminUploadForm").reset();
+  alert(`✅ Drop "${title}" uploaded successfully! It is now live on the website.`);
+
+  renderAdminProductsTable();
+  renderAnalytics();
+}
+
+// Delete Product
+function deleteProduct(productId) {
+  let products = getStoredProducts();
+  const target = products.find(p => p.id === productId);
+
+  if (target && confirm(`Are you sure you want to delete "${target.name}" from the store?`)) {
+    products = products.filter(p => p.id !== productId);
+    saveProducts(products);
+    renderAdminProductsTable();
+    renderAnalytics();
+  }
+}

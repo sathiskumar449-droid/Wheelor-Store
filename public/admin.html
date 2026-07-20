@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WHEELOR Store Admin Panel | Product Upload & Traffic Analytics</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="brand-logo-link">
+        <svg class="brand-logo-img" width="140" height="42" viewBox="0 0 240 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="240" height="70" fill="#000000" rx="8"/>
+          <path d="M25 48 L40 18 L50 38 L62 18 L75 48 M68 35 L80 35 M70 23 L82 48" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="95" y="38" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-weight="900" font-size="18" letter-spacing="2">WHEELOR</text>
+          <text x="95" y="52" fill="#FF5500" font-family="sans-serif" font-weight="800" font-size="8" letter-spacing="1">ADMIN DASHBOARD</text>
+        </svg>
+      </a>
+
+      <div class="nav-actions">
+        <a href="index.html" class="btn-hero-primary" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">
+          <span>👁️ VIEW LIVE STORE</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Admin Main Container -->
+  <main class="admin-container">
+    <div class="admin-header">
+      <div>
+        <h1 class="admin-title">WHEELOR STORE MANAGEMENT</h1>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">
+          Upload new T-Shirt products with Front/Back images and track real-time website traffic & WhatsApp order enquiries.
+        </p>
+      </div>
+      <button onclick="resetAnalyticsData()" class="btn-admin-link">🔄 RESET STATS</button>
+    </div>
+
+    <!-- 1. Real-time Traffic & Analytics Dashboard -->
+    <h2 style="margin-bottom: 1rem; color: var(--accent-cyan);">📊 WEBSITE TRAFFIC & ANALYTICS</h2>
+    <div class="analytics-grid">
+      <div class="analytics-card">
+        <span class="analytics-value" id="statPageViews">0</span>
+        <span class="analytics-label">TOTAL PAGE VISITS</span>
+      </div>
+
+      <div class="analytics-card">
+        <span class="analytics-value" id="statWaClicks" style="color: var(--whatsapp-green);">0</span>
+        <span class="analytics-label">WHATSAPP ENQUIRY CLICKS</span>
+      </div>
+
+      <div class="analytics-card">
+        <span class="analytics-value" id="statProductsCount" style="color: var(--accent-orange);">0</span>
+        <span class="analytics-label">ACTIVE DROPS IN STORE</span>
+      </div>
+
+      <div class="analytics-card">
+        <span class="analytics-value" id="statConversion">0%</span>
+        <span class="analytics-label">ENQUIRY CONVERSION RATE</span>
+      </div>
+    </div>
+
+    <!-- 2. Product Upload Form -->
+    <div class="admin-form-card">
+      <h2 style="margin-bottom: 1.25rem; color: var(--text-primary);">➕ UPLOAD NEW T-SHIRT DROP</h2>
+      
+      <form id="adminUploadForm" onsubmit="handleProductUpload(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">T-SHIRT PRODUCT TITLE *</label>
+            <input type="text" id="prodTitle" class="form-input" placeholder="e.g. Vintage Anime Oversized Tee" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CATEGORY *</label>
+            <select id="prodCategory" class="form-select" required>
+              <option value="oversized">Oversized Fit</option>
+              <option value="graphic">Streetwear Graphic</option>
+              <option value="anime">Anime & Gaming</option>
+              <option value="bestseller">Bestseller Drop</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PRICE (₹) *</label>
+            <input type="number" id="prodPrice" class="form-input" value="399" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ORIGINAL MRP (₹) *</label>
+            <input type="number" id="prodOriginalPrice" class="form-input" value="799" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">COLOR / FABRIC *</label>
+            <input type="text" id="prodColor" class="form-input" placeholder="e.g. Off-White / Cream" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">STOCK BADGE STATUS *</label>
+            <input type="text" id="prodStock" class="form-input" placeholder="e.g. Only 5 Left or High Demand" required />
+          </div>
+
+          <!-- Front Image File Upload -->
+          <div class="form-group">
+            <label class="form-label">🖼️ FRONT IMAGE (FILE UPLOAD OR URL) *</label>
+            <input type="file" id="prodFrontFile" class="form-input" accept="image/*" onchange="convertImageFile(this, 'prodFrontData')" />
+            <input type="text" id="prodFrontData" class="form-input" style="margin-top:0.4rem;" placeholder="Or paste image URL (http://...)" />
+          </div>
+
+          <!-- Back Image File Upload -->
+          <div class="form-group">
+            <label class="form-label">🖼️ BACK IMAGE (FILE UPLOAD OR URL) *</label>
+            <input type="file" id="prodBackFile" class="form-input" accept="image/*" onchange="convertImageFile(this, 'prodBackData')" />
+            <input type="text" id="prodBackData" class="form-input" style="margin-top:0.4rem;" placeholder="Or paste back image URL (http://...)" />
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">TAGLINE / SHORT CAPTION</label>
+            <input type="text" id="prodTagline" class="form-input" placeholder="e.g. Built for streetwear enthusiasts" />
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">FULL PRODUCT DESCRIPTION</label>
+            <textarea id="prodDesc" class="form-textarea" rows="3" placeholder="Write description for product detail modal..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-admin-submit">
+          🚀 PUBLISH DROP TO WEBSITE
+        </button>
+      </form>
+    </div>
+
+    <!-- 3. Active Products List -->
+    <div class="admin-products-list">
+      <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">👕 LIVE STORE DROPS MANAGER</h2>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>IMAGE</th>
+            <th>PRODUCT TITLE</th>
+            <th>CATEGORY</th>
+            <th>PRICE</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="adminProductsTableBody">
+          <!-- Dynamic Products Rows -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
