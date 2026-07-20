@@ -43,32 +43,46 @@ function lockAdminPanel() {
   if (overlay) overlay.classList.add("active");
 }
 
-// Load Products from LocalStorage or Set Default
+// Load Products from LocalStorage
 function getStoredProducts() {
   const stored = localStorage.getItem("WHEELOR_PRODUCTS");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
-      let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/") && p.id !== "drop-01" && p.name !== "Lazy Panda Tee");
-      
-      const unique = [];
-      const seen = new Set();
-      for (const p of cleaned) {
-        if (!seen.has(p.id) && !seen.has(p.name)) {
-          seen.add(p.id);
-          seen.add(p.name);
-          unique.push(p);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/logo"));
+        const unique = [];
+        const seen = new Set();
+        for (const p of cleaned) {
+          if (!seen.has(p.id)) {
+            seen.add(p.id);
+            unique.push(p);
+          }
         }
+        return unique;
       }
-
-      return unique;
     } catch(e) {
       return [];
     }
-  } else {
-    localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify([]));
-    return [];
   }
+  return [];
+}
+
+// Export Products as downloadable products.json for permanent git repository updates
+function exportProductsJSON() {
+  const products = getStoredProducts();
+  if (products.length === 0) {
+    alert("⚠️ No products available to export!");
+    return;
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "products.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  alert("📥 Downloaded products.json!\n\nTo make your drops PERMANENT for all global visitors:\n1. Replace public/products.json and products.json in your project with this downloaded file.\n2. Run git commands to push to GitHub.");
 }
 
 function saveProducts(products) {

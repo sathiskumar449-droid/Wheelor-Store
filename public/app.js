@@ -22,36 +22,50 @@ const DEFAULT_PRODUCTS = [];
 // Active Products State
 let PRODUCTS = [];
 
-// Clean up local storage from old demo or broken products
-function loadStoreProducts() {
+// Load Store Products with LocalStorage & Static JSON Fallback
+async function loadStoreProducts() {
   const stored = localStorage.getItem("WHEELOR_PRODUCTS");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
-      // Remove broken images, default demo Lazy Panda Tee, or drop-01
-      let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/") && p.id !== "drop-01" && p.name !== "Lazy Panda Tee");
-      
-      // Deduplicate by ID and Name
-      const unique = [];
-      const seen = new Set();
-      for (const p of cleaned) {
-        if (!seen.has(p.id) && !seen.has(p.name)) {
-          seen.add(p.id);
-          seen.add(p.name);
-          unique.push(p);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/logo"));
+        const unique = [];
+        const seen = new Set();
+        for (const p of cleaned) {
+          if (!seen.has(p.id)) {
+            seen.add(p.id);
+            unique.push(p);
+          }
+        }
+
+        if (unique.length > 0) {
+          PRODUCTS = unique;
+          renderProducts();
+          setupHeroImage();
+          return;
         }
       }
-
-      PRODUCTS = unique;
     } catch(e) {
-      PRODUCTS = [];
+      console.error("Error loading stored products:", e);
     }
-  } else {
-    PRODUCTS = [];
   }
-  
-  // Save cleaned products array
-  localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(PRODUCTS));
+
+  // Fallback to static products.json if localStorage has no products
+  try {
+    const res = await fetch("./products.json");
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        PRODUCTS = data;
+        localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(PRODUCTS));
+        renderProducts();
+        setupHeroImage();
+      }
+    }
+  } catch (err) {
+    console.warn("products.json fetch fallback failed:", err);
+  }
 }
 
 // Track Traffic & Page Views
