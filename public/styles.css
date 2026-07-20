@@ -188,20 +188,24 @@ img {
   gap: 0.75rem;
 }
 
-.btn-admin-link {
+.btn-admin-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   background: var(--bg-card);
-  color: var(--accent-cyan);
-  border: 1px solid var(--accent-cyan);
-  padding: 0.5rem 0.9rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 800;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  font-size: 1rem;
   transition: var(--transition-fast);
 }
 
-.btn-admin-link:hover {
-  background: var(--accent-cyan);
+.btn-admin-gear:hover {
+  background: var(--accent-orange);
   color: #000000;
+  border-color: var(--accent-orange);
 }
 
 .btn-header-wa {

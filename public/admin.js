@@ -1,7 +1,9 @@
 /* -------------------------------------------------------------
  * WHEELOR Admin Dashboard Script
- * Handles Product Uploads, Local Storage Sync, and Traffic Analytics
+ * Handles Admin Security PIN Auth, Product Uploads, Local Storage Sync, and Traffic Analytics
  * ------------------------------------------------------------- */
+
+const STORE_ADMIN_PIN = "9876@1234";
 
 const LAZY_PANDA_BASE64 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700" viewBox="0 0 600 700"><rect width="600" height="700" fill="%23F4F0EA"/><path d="M150 70 Q300 95 450 70 L550 170 L470 250 L470 650 L130 650 L130 250 L50 170 Z" fill="%23FAF7F2" stroke="%23E2DDD3" stroke-width="4"/><path d="M250 70 Q300 110 350 70" fill="none" stroke="%23111118" stroke-width="4"/><rect x="275" y="105" width="50" height="24" fill="%23000" rx="3"/><text x="300" y="121" fill="%23FFF" font-family="sans-serif" font-weight="bold" font-size="8" text-anchor="middle">WHEELOR</text><text x="300" y="195" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="32" letter-spacing="1" text-anchor="middle">doing</text><text x="300" y="240" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="44" letter-spacing="1" text-anchor="middle">nothing</text><ellipse cx="300" cy="365" rx="115" ry="75" fill="%23E5E7EB"/><circle cx="240" cy="305" r="18" fill="%23111118"/><circle cx="360" cy="305" r="18" fill="%23111118"/><ellipse cx="300" cy="345" rx="70" ry="55" fill="%23FFFFFF" stroke="%23111118" stroke-width="4"/><ellipse cx="272" cy="340" rx="12" ry="16" fill="%23111118"/><ellipse cx="328" cy="340" rx="12" ry="16" fill="%23111118"/><polygon points="300,357 290,369 310,369" fill="%23111118"/><path d="M288 380 Q300 393 312 380" fill="none" stroke="%23111118" stroke-width="4"/><rect x="335" y="365" width="38" height="52" fill="%23D97706" rx="8" stroke="%23111118" stroke-width="2"/><rect x="343" y="355" width="22" height="12" fill="%23FFFFFF" rx="2"/><line x1="354" y1="335" x2="354" y2="355" stroke="%23111118" stroke-width="4"/><rect x="235" y="455" width="130" height="28" fill="%23F3E8FF" rx="6"/><text x="300" y="475" fill="%23111118" font-family="sans-serif" font-weight="800" font-size="16" text-anchor="middle">is a</text><text x="300" y="520" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="34" letter-spacing="1" text-anchor="middle">full-time job</text></svg>`;
 
@@ -26,6 +28,40 @@ const DEFAULT_PRODUCTS = [
     badge: "BESTSELLER"
   }
 ];
+
+// Verify Admin Security PIN
+function checkAdminAuth() {
+  const isAuth = sessionStorage.getItem("WHEELOR_ADMIN_AUTH");
+  const overlay = document.getElementById("adminPinAuthOverlay");
+  
+  if (isAuth === "true") {
+    if (overlay) overlay.classList.remove("active");
+  } else {
+    if (overlay) overlay.classList.add("active");
+  }
+}
+
+function verifyAdminPin(event) {
+  event.preventDefault();
+  const inputPin = document.getElementById("adminPinInput").value.trim();
+  const errorElem = document.getElementById("adminPinError");
+
+  if (inputPin === STORE_ADMIN_PIN) {
+    sessionStorage.setItem("WHEELOR_ADMIN_AUTH", "true");
+    document.getElementById("adminPinAuthOverlay").classList.remove("active");
+    renderAnalytics();
+    renderAdminProductsTable();
+  } else {
+    errorElem.innerText = "❌ Incorrect Admin PIN. Access Denied!";
+    document.getElementById("adminPinInput").value = "";
+  }
+}
+
+function lockAdminPanel() {
+  sessionStorage.removeItem("WHEELOR_ADMIN_AUTH");
+  const overlay = document.getElementById("adminPinAuthOverlay");
+  if (overlay) overlay.classList.add("active");
+}
 
 // Load Products from LocalStorage or Set Default
 function getStoredProducts() {
@@ -77,6 +113,7 @@ function convertImageFile(fileInput, targetInputId) {
 
 // Initialize Admin Dashboard
 document.addEventListener("DOMContentLoaded", () => {
+  checkAdminAuth();
   renderAnalytics();
   renderAdminProductsTable();
 });
@@ -87,12 +124,17 @@ function renderAnalytics() {
   const waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "38", 10);
   const products = getStoredProducts();
 
-  document.getElementById("statPageViews").innerText = views.toLocaleString();
-  document.getElementById("statWaClicks").innerText = waClicks.toLocaleString();
-  document.getElementById("statProductsCount").innerText = products.length;
+  const vElem = document.getElementById("statPageViews");
+  const cElem = document.getElementById("statWaClicks");
+  const pElem = document.getElementById("statProductsCount");
+  const rElem = document.getElementById("statConversion");
+
+  if (vElem) vElem.innerText = views.toLocaleString();
+  if (cElem) cElem.innerText = waClicks.toLocaleString();
+  if (pElem) pElem.innerText = products.length;
 
   const convRate = views > 0 ? ((waClicks / views) * 100).toFixed(1) : "0";
-  document.getElementById("statConversion").innerText = `${convRate}%`;
+  if (rElem) rElem.innerText = `${convRate}%`;
 }
 
 function resetAnalyticsData() {

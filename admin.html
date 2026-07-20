@@ -8,6 +8,39 @@
 </head>
 <body>
 
+  <!-- Admin PIN Protection Overlay -->
+  <div id="adminPinAuthOverlay" class="modal-overlay active" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 420px; padding: 2.5rem 2rem; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+      <h2 style="color: var(--accent-orange); margin-bottom: 0.5rem;">ADMIN SECURITY LOCK</h2>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+        Enter your 4-digit Store Owner PIN to access product uploader & traffic analytics.
+      </p>
+
+      <form onsubmit="verifyAdminPin(event)">
+        <input 
+          type="password" 
+          id="adminPinInput" 
+          class="form-input" 
+          placeholder="Enter Admin PIN (Default: 1234)" 
+          style="text-align: center; font-size: 1.5rem; letter-spacing: 0.4em; font-family: monospace; margin-bottom: 1rem;" 
+          maxlength="8" 
+          required 
+          autofocus
+        />
+        <div id="adminPinError" style="color: #FF4D4D; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; min-height: 20px;"></div>
+        
+        <button type="submit" class="btn-admin-submit" style="width: 100%;">
+          🔓 UNLOCK DASHBOARD
+        </button>
+      </form>
+
+      <a href="index.html" style="display: inline-block; margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-muted); text-decoration: underline;">
+        ← Back to Customer Store
+      </a>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="navbar">
     <div class="navbar-container">
@@ -21,6 +54,9 @@
       </a>
 
       <div class="nav-actions">
+        <button onclick="lockAdminPanel()" class="btn-admin-link" style="border-color: #FF3B30; color: #FF3B30; margin-right: 0.5rem;">
+          🔒 LOCK PANEL
+        </button>
         <a href="index.html" class="btn-hero-primary" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">
           <span>👁️ VIEW LIVE STORE</span>
         </a>
