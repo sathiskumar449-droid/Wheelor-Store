@@ -76,6 +76,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   setupPincodeChecker();
   setupHeroImage();
+
+  // Listen for product changes from Admin Panel in real-time
+  window.addEventListener("storage", (e) => {
+    if (e.key === "WHEELOR_PRODUCTS") {
+      loadStoreProducts();
+      renderProducts();
+      setupHeroImage();
+    }
+  });
 });
 
 // Setup Hero Featured Image

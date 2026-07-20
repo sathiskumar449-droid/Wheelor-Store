@@ -72,17 +72,75 @@ function getStoredProducts() {
 }
 
 function saveProducts(products) {
-  localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(products));
+  try {
+    localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(products));
+    return true;
+  } catch (e) {
+    console.error("LocalStorage Quota Exceeded:", e);
+    alert("⚠️ LocalStorage Quota Exceeded! The image file size is too large for browser memory. Please try uploading a smaller image file or paste an image URL.");
+    return false;
+  }
 }
 
-// Convert uploaded file to Base64 Data URI
+// Convert and Compress uploaded file to Lightweight Base64 JPEG (max 1000px, 0.8 quality)
 function convertImageFile(fileInput, targetInputId) {
   const file = fileInput.files[0];
   if (!file) return;
 
+  const targetInput = document.getElementById(targetInputId);
+  const formBtn = document.querySelector("#adminUploadForm button[type='submit']");
+  
+  if (targetInput) targetInput.placeholder = "⏳ Compressing image, please wait...";
+  if (formBtn) {
+    formBtn.disabled = true;
+    formBtn.innerText = "⏳ COMPRESSING IMAGE...";
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById(targetInputId).value = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 1000;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Canvas JPEG compression reduces 5MB image to ~50KB
+      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+      targetInput.value = compressedBase64;
+
+      if (formBtn) {
+        formBtn.disabled = false;
+        formBtn.innerHTML = "🚀 PUBLISH DROP TO WEBSITE";
+      }
+    };
+    img.onerror = function() {
+      targetInput.value = e.target.result;
+      if (formBtn) {
+        formBtn.disabled = false;
+        formBtn.innerHTML = "🚀 PUBLISH DROP TO WEBSITE";
+      }
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -162,8 +220,14 @@ function handleProductUpload(event) {
   const color = document.getElementById("prodColor").value.trim();
   const stock = document.getElementById("prodStock").value.trim();
   const frontImg = document.getElementById("prodFrontData").value.trim() || LAZY_PANDA_BASE64;
+  const backImg = document.getElementById("prodBackData").value.trim() || frontImg;
   const tagline = document.getElementById("prodTagline").value.trim() || "Wear Beyond Ordinary";
   const description = document.getElementById("prodDesc").value.trim() || "Exclusive oversized graphic t-shirt.";
+
+  if (!title) {
+    alert("⚠️ Please fill in the product title!");
+    return;
+  }
 
   const discountCalc = Math.round(((originalPrice - price) / originalPrice) * 100);
 
@@ -181,7 +245,7 @@ function handleProductUpload(event) {
     tagline: tagline,
     description: description,
     frontImg: frontImg,
-    backImg: frontImg,
+    backImg: backImg,
     currentView: "front",
     selectedSize: "M",
     badge: "NEW DROP"
@@ -189,13 +253,14 @@ function handleProductUpload(event) {
 
   const products = getStoredProducts();
   products.unshift(newProduct);
-  saveProducts(products);
+  const success = saveProducts(products);
 
-  document.getElementById("adminUploadForm").reset();
-  alert(`✅ Drop "${title}" uploaded successfully! It is now live on the website.`);
-
-  renderAdminProductsTable();
-  renderAnalytics();
+  if (success) {
+    document.getElementById("adminUploadForm").reset();
+    alert(`✅ Drop "${title}" uploaded successfully! It is now live on the website.`);
+    renderAdminProductsTable();
+    renderAnalytics();
+  }
 }
 
 // Delete Product
