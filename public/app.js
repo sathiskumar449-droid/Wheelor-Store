@@ -77,13 +77,13 @@ function loadStoreProducts() {
 
 // Track Traffic & Page Views
 function trackPageView() {
-  let views = parseInt(localStorage.getItem("WHEELOR_PAGE_VIEWS") || "142", 10);
+  let views = parseInt(localStorage.getItem("WHEELOR_PAGE_VIEWS") || "0", 10);
   views++;
   localStorage.setItem("WHEELOR_PAGE_VIEWS", views.toString());
 }
 
 function trackWhatsAppClick() {
-  let waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "38", 10);
+  let waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "0", 10);
   waClicks++;
   localStorage.setItem("WHEELOR_WA_CLICKS", waClicks.toString());
 }

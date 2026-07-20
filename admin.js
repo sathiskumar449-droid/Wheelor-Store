@@ -116,12 +116,22 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAdminAuth();
   renderAnalytics();
   renderAdminProductsTable();
+
+  // Real-time live update when users visit site or click WhatsApp
+  window.addEventListener("storage", (e) => {
+    if (e.key === "WHEELOR_PAGE_VIEWS" || e.key === "WHEELOR_WA_CLICKS") {
+      renderAnalytics();
+    }
+    if (e.key === "WHEELOR_PRODUCTS") {
+      renderAdminProductsTable();
+    }
+  });
 });
 
 // Render Traffic & Analytics Stats
 function renderAnalytics() {
-  const views = parseInt(localStorage.getItem("WHEELOR_PAGE_VIEWS") || "142", 10);
-  const waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "38", 10);
+  const views = parseInt(localStorage.getItem("WHEELOR_PAGE_VIEWS") || "0", 10);
+  const waClicks = parseInt(localStorage.getItem("WHEELOR_WA_CLICKS") || "0", 10);
   const products = getStoredProducts();
 
   const vElem = document.getElementById("statPageViews");
@@ -139,7 +149,7 @@ function renderAnalytics() {
 
 function resetAnalyticsData() {
   if (confirm("Reset website page visits and enquiry click statistics?")) {
-    localStorage.setItem("WHEELOR_PAGE_VIEWS", "1");
+    localStorage.setItem("WHEELOR_PAGE_VIEWS", "0");
     localStorage.setItem("WHEELOR_WA_CLICKS", "0");
     renderAnalytics();
   }
