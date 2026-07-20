@@ -16,40 +16,22 @@ const STORE_CONFIG = {
 // High-Resolution Valid Base64 Panda Tee Image
 const LAZY_PANDA_BASE64 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700" viewBox="0 0 600 700"><rect width="600" height="700" fill="%23F4F0EA"/><path d="M150 70 Q300 95 450 70 L550 170 L470 250 L470 650 L130 650 L130 250 L50 170 Z" fill="%23FAF7F2" stroke="%23E2DDD3" stroke-width="4"/><path d="M250 70 Q300 110 350 70" fill="none" stroke="%23111118" stroke-width="4"/><rect x="275" y="105" width="50" height="24" fill="%23000" rx="3"/><text x="300" y="121" fill="%23FFF" font-family="sans-serif" font-weight="bold" font-size="8" text-anchor="middle">WHEELOR</text><text x="300" y="195" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="32" letter-spacing="1" text-anchor="middle">doing</text><text x="300" y="240" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="44" letter-spacing="1" text-anchor="middle">nothing</text><ellipse cx="300" cy="365" rx="115" ry="75" fill="%23E5E7EB"/><circle cx="240" cy="305" r="18" fill="%23111118"/><circle cx="360" cy="305" r="18" fill="%23111118"/><ellipse cx="300" cy="345" rx="70" ry="55" fill="%23FFFFFF" stroke="%23111118" stroke-width="4"/><ellipse cx="272" cy="340" rx="12" ry="16" fill="%23111118"/><ellipse cx="328" cy="340" rx="12" ry="16" fill="%23111118"/><polygon points="300,357 290,369 310,369" fill="%23111118"/><path d="M288 380 Q300 393 312 380" fill="none" stroke="%23111118" stroke-width="4"/><rect x="335" y="365" width="38" height="52" fill="%23D97706" rx="8" stroke="%23111118" stroke-width="2"/><rect x="343" y="355" width="22" height="12" fill="%23FFFFFF" rx="2"/><line x1="354" y1="335" x2="354" y2="355" stroke="%23111118" stroke-width="4"/><rect x="235" y="455" width="130" height="28" fill="%23F3E8FF" rx="6"/><text x="300" y="475" fill="%23111118" font-family="sans-serif" font-weight="800" font-size="16" text-anchor="middle">is a</text><text x="300" y="520" fill="%23111118" font-family="sans-serif" font-weight="900" font-size="34" letter-spacing="1" text-anchor="middle">full-time job</text></svg>`;
 
-// Default Initial Product (ONLY 1 Valid Drop - No duplicates, no blank cards)
-const DEFAULT_PRODUCTS = [
-  {
-    id: "drop-01",
-    name: "Lazy Panda Tee",
-    category: "oversized",
-    categoryLabel: "Oversized Fit",
-    price: 399,
-    originalPrice: 799,
-    discount: "50% OFF",
-    stockStatus: "Only 4 Left",
-    color: "Cream / Off-White",
-    fabric: "100% Cotton",
-    tagline: "Doing Nothing Is A Full-Time Job",
-    description: "Ultra-chill oversized graphic tee crafted from combed French Terry cotton.",
-    frontImg: LAZY_PANDA_BASE64,
-    backImg: LAZY_PANDA_BASE64,
-    currentView: "front",
-    selectedSize: "M",
-    badge: "BESTSELLER"
-  }
-];
+// Default Initial Products (Starts empty until admin uploads products)
+const DEFAULT_PRODUCTS = [];
 
 // Active Products State
 let PRODUCTS = [];
 
-// Clean up local storage from old broken image paths
+// Clean up local storage from old demo or broken products
 function loadStoreProducts() {
   const stored = localStorage.getItem("WHEELOR_PRODUCTS");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
-      let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/"));
+      // Remove broken images, default demo Lazy Panda Tee, or drop-01
+      let cleaned = parsed.filter(p => p.frontImg && !p.frontImg.includes("./images/") && p.id !== "drop-01" && p.name !== "Lazy Panda Tee");
       
+      // Deduplicate by ID and Name
       const unique = [];
       const seen = new Set();
       for (const p of cleaned) {
@@ -60,18 +42,15 @@ function loadStoreProducts() {
         }
       }
 
-      if (unique.length > 0) {
-        PRODUCTS = unique;
-      } else {
-        PRODUCTS = DEFAULT_PRODUCTS;
-      }
+      PRODUCTS = unique;
     } catch(e) {
-      PRODUCTS = DEFAULT_PRODUCTS;
+      PRODUCTS = [];
     }
   } else {
-    PRODUCTS = DEFAULT_PRODUCTS;
+    PRODUCTS = [];
   }
   
+  // Save cleaned products array
   localStorage.setItem("WHEELOR_PRODUCTS", JSON.stringify(PRODUCTS));
 }
 
@@ -105,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Setup Hero Featured Image
 function setupHeroImage() {
   const heroImg = document.getElementById("heroCardImg");
-  if (heroImg && PRODUCTS.length > 0) {
+  if (heroImg && PRODUCTS.length > 0 && PRODUCTS[0].frontImg) {
     heroImg.src = PRODUCTS[0].frontImg;
   }
 }
@@ -121,9 +100,9 @@ function renderProducts() {
 
   if (filteredProducts.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-        <h3>NO DROPS FOUND IN THIS CATEGORY</h3>
-        <p>Go to the <a href="admin.html" style="color: var(--accent-cyan); text-decoration: underline;">Admin Panel</a> to upload new products!</p>
+      <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-secondary);">
+        <h3 style="font-size: 1.5rem; color: var(--accent-orange); margin-bottom: 0.5rem; letter-spacing: 2px; text-transform: uppercase;">NEW DROPS COMING SOON 🔥</h3>
+        <p style="font-size: 0.95rem; color: var(--text-muted);">Stay tuned! Premium streetwear drops are coming soon to this collection.</p>
       </div>
     `;
     return;
